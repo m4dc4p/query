@@ -23,7 +23,7 @@ object Filter {
     case "VIEW_TIME" => { _.viewTime.exists(_.equals(value)) }
   }
 
-  private def makeFilters(ls : List[(String, String)], filter : Option[StbRow] => Option[StbRow]): StbRow => Boolean = ls match {
+  def makeFilters(ls : List[(String, String)], filter : Option[StbRow] => Option[StbRow]): StbRow => Boolean = ls match {
     case Nil => { row : StbRow => filter(Some(row)).exists(_ => true) }
     case (col, value) :: rest => {
       val matcher = makePredicate(col, value)
@@ -31,11 +31,11 @@ object Filter {
     }
   }
 
-  def apply(filters : List[(String, String)]) : Filter[StbRow] = {
-    val filterExpr = makeFilters(filters, { x => x })
-    new Filter[StbRow] {
-      override def apply(rows: Iterator[StbRow]): Iterator[StbRow] = {
-        for(r <- rows; if filterExpr(r)) yield r
+  def apply(filters : List[(String, String)]) : Filter[StbIndexedRow] = {
+    val predicate = makeFilters(filters, { x => x })
+    new Filter[StbIndexedRow] {
+      override def apply(rows: Iterator[StbIndexedRow]): Iterator[StbIndexedRow] = {
+        for (r <- rows; row <- r.row if predicate(row)) yield r
       }
     }
   }

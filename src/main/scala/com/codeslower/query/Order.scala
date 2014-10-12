@@ -35,7 +35,7 @@ object Order {
     }
     case "DATE" => new Ordering[StbRow] {
       override def compare(x: StbRow, y: StbRow): Int =
-        (x.provider, y.provider) match {
+        (x.date, y.date) match {
           case (Some(r1), Some(r2)) =>  r1.compareTo(r2)
           case (Some(r1), _) => 1
           case (_, Some(r2)) => -1
@@ -62,14 +62,14 @@ object Order {
     }
   }
 
-  def makeOrder(cols: List[String], ordering: Ordering[StbRow]): Ordering[StbRow] = {
+  def makeOrdering(cols: List[String], ordering: Ordering[StbRow]): Ordering[StbRow] = {
     cols match {
       case Nil => new Ordering[StbRow] {
         override def compare(r1: StbRow, r2: StbRow): Int = ordering.compare(r1, r2)
       }
       case col :: rest => {
         val lastOrdering = makeComparator(col)
-        makeOrder(rest,  new Ordering[StbRow] {
+        makeOrdering(rest,  new Ordering[StbRow] {
           override def compare(r1: StbRow, r2: StbRow): Int = { ordering.compare(r1, r2) match {
             case 0 => lastOrdering.compare(r1, r2)
             case x => x
@@ -79,22 +79,33 @@ object Order {
     }
   }
 
-  def apply(columns : List[String]): Order[StbRow] = {
+  def apply(columns : List[String]): Order[StbIndexedRow] = {
     columns match {
       // No need to sort in this case
-      case Nil => new Order[StbRow] {
-        override def apply(rows: Iterator[StbRow]): Iterator[StbRow] = rows
+      case Nil => new Order[StbIndexedRow] {
+        override def apply(rows: Iterator[StbIndexedRow]): Iterator[StbIndexedRow] = rows
       }
-      case _ => {
-        val orderer = makeOrder(columns, new Ordering[StbRow] {
+      case _ => new Order[StbIndexedRow] {
+        private val orderer = makeOrdering(columns, new Ordering[StbRow] {
           override def compare(r1: StbRow, r2: StbRow): Int = 0
         })
 
-        // Unfortunately this sorts in-memory
-        new Order[StbRow] {
-          override def apply(rows: Iterator[StbRow]): Iterator[StbRow] = {
-            rows.toList.sorted(orderer).iterator
+        private val indexedOrderer = new Ordering[StbIndexedRow] {
+          override def compare(left: StbIndexedRow, right: StbIndexedRow): Int = {
+            (left.row, right.row) match {
+              case (Some(l), Some(r)) => {
+                // print("x")
+                orderer.compare(l, r)
+              }
+              case (Some(_), _) => 1
+              case (_, Some(_)) => -1
+              case (_, _) => 0
+            }
           }
+        }
+
+        def apply(input: Iterator[StbIndexedRow]): Iterator[StbIndexedRow] = {
+          for(row <- input.toList.sorted(indexedOrderer).iterator) yield row
         }
       }
     }
