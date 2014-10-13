@@ -8,6 +8,7 @@ import org.apache.commons.cli._
 import scala.util.{Try, Success, Failure}
 
 object Boot extends App {
+
   val opts = new Options
   opts.addOption("s",true, "A comma-separated list of columns to display. Can only be used once.")
   opts.addOption("o",true, "A comma-separated list of columns to order results by. Can only be used once.")
@@ -20,7 +21,7 @@ object Boot extends App {
     ???
   }
 
-  private val queryArgs  = Try { new PosixParser().parse(opts, this.args) } match {
+  private val queryArgs  = Try { new GnuParser().parse(opts, this.args, false) } match {
     case Success(a) => a
     case Failure(_:ParseException) => printUsage()
     case Failure(t) => throw t
@@ -36,8 +37,7 @@ object Boot extends App {
     case filters if filters != null && filters.length > 0 =>
       filters.map((expr:String) =>
           expr.split("=").map(_.trim))
-        .map(f =>
-          (f(0), f(1))).toList
+        .map(f => (f(0), f(1))).toList
     case _ => List()
   }
   val selectExprs : List[String] = queryArgs.getOptionValue('s') match {
