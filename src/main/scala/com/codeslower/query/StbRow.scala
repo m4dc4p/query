@@ -97,7 +97,7 @@ class StbIndexedRow(idx: Int, store: FileStore[StbIndexedRow]) extends Row {
     new StbRow(Option(stb), 
       Option(StbSchema.parseViewDate(date)),
       Option(StbSchema.parseViewTime(view_time)),
-      Option(StbSchema.parseRevenue(rev).asInstanceOf[java.math.BigDecimal]),
+      Option(StbSchema.parseRevenue(rev)),
       Option(title),
       Option(provider), idx)
   }
@@ -125,7 +125,8 @@ case class StbRow(stb: Option[String],
       case "PROVIDER" => provider
       case "DATE" => date.map(dateFormatter.format)
       case "REV" => revenue.map(numberFormatter.format)
-      case "VIEW_TIME" => viewTime.map(t => s"${t.toHours.formatted("%02d")}:${(t.toMinutes - t.toHours * 60).formatted("%02d")}")
+      case "VIEW_TIME" => viewTime.map(t =>
+        s"${t.toHours.formatted("%02d")}:${(t.toMinutes - t.toHours * 60).formatted("%02d")}")
     }
   }
 }

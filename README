@@ -1,0 +1,54 @@
+I optimized this implementation for memory usage - specifically, when sorting,
+I only retain a reference to the *index* of a record, rather than the record
+itself.
+
+The importer maintains a list of records seen so far; indices of duplicates are
+stored in a list that is built during import. After all records have been
+written, the importer looks at all duplicates and clears all but the most
+recent (by position in the original data file). 
+
+The data store uses a fixed-width layout so access to an individual record is
+fast and easy to calculate. Cleared records left by the import process are
+effectively invisible.
+
+Building
+======
+
+This project is written in Scala and uses "sbt" to build. If you want to
+rebuild all files, type
+
+  sbt assembly
+
+which will create a jar file at target/scala-2.11/query-assembly-1.0.jar
+
+Importing Data & Queries
+======
+
+To import data, pass the name of the data file to the importer program. For
+example:
+
+  ./import.sh rows.txt 
+
+The importer will create a data file in the current directory. Queries must be
+run from that directory. To query:
+
+  ./query .sh
+
+Assumptions and Caveats
+=====
+
+Importer:
+
+  * Assuming all revenue values are less than $100, and that they do not
+    include currency symbols. Currencies under $1 must be written as "0.99"
+  * Assuming view time values are less than 99 hours.
+  * Assuming the data contains UTF-8 encoded ASCII (no multi-byte charactes)
+
+Queries:
+
+   * Filter expressions with spaces (like title or provider) must be given as
+     '-f "title=the hobbit"'. Expressions without spaces can be given without
+     quotes; for example, '-f title=unbreakable'
+   * Assume filter operations are passed as comma-separated arguments.
+   * Assume ordering is always descending
+    

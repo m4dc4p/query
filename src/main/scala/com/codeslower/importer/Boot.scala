@@ -19,9 +19,14 @@ case class InputRecord(val stb: Option[String],
 
 object Boot extends App {
 
-  val inputFilePath: Path = Paths.get("/tmp/rows.txt")
-  val tmpFilePath : Path = Paths.get("/tmp/rows.tmp")
-  val fileStorePath : Path = Paths.get("/tmp/rows.dat")
+  if(this.args.length !=1 ) {
+    println("The filename to import must be provided as an argument.")
+    System.exit(1)
+  }
+
+  val inputFilePath: Path = Paths.get(s"./${this.args(0)}")
+  val tmpFilePath : Path = Paths.get("./rows.tmp")
+  val fileStorePath : Path = Paths.get("./rows.dat")
 
   private val inputFile = Files.newBufferedReader(inputFilePath, Charset.forName("UTF-8"))
   private val tmpFile = FileChannel.open(tmpFilePath,

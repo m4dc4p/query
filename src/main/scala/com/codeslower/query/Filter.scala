@@ -1,33 +1,36 @@
 package com.codeslower.query
 
+import java.math.BigDecimal
 import java.text.{NumberFormat, DecimalFormat}
 import java.util.Date
 
-object Filter {
-  val revenueParser = new DecimalFormat("#,###.##")
-  revenueParser.setParseBigDecimal(true)
-  val dateParser = new java.text.SimpleDateFormat("yyyy-MM-dd")
+import scala.concurrent.duration.Duration
 
+object Filter {
   private def makePredicate(col : String, value : String): StbRow => Boolean = col.toUpperCase.trim match {
     case "STB" => { _.stb.exists(_.equals(value)) }
     case "TITLE" => { _.title.exists(_.equals(value)) }
     case "PROVIDER" => { _.provider.exists(_.equals(value)) }
     case "DATE" => {
-      val date : Date = dateParser.parse(value)
-      _.date.exists(_.equals(date))
+      val viewDate: Date = StbSchema.parseViewDate(value)
+      _.date.exists(_.equals(viewDate))
     }
     case "REV" => {
-      val rev = revenueParser.parse(value).asInstanceOf[java.math.BigDecimal]
-      _.revenue.exists(_.equals(rev))
+      val revenue: BigDecimal = StbSchema.parseRevenue(value)
+      _.revenue.exists(_.compareTo(revenue) == 0)
     }
-    case "VIEW_TIME" => { _.viewTime.exists(_.equals(value)) }
+    case "VIEW_TIME" => {
+      val view_date: Duration = StbSchema.parseViewTime(value)
+      _.viewTime.exists(_.equals(view_date)) }
   }
 
   def makeFilters(ls : List[(String, String)], filter : Option[StbRow] => Option[StbRow]): StbRow => Boolean = ls match {
-    case Nil => { row : StbRow => filter(Some(row)).exists(_ => true) }
+    case Nil => { row: StbRow => filter(Some(row)).exists(_ => true) }
     case (col, value) :: rest => {
       val matcher = makePredicate(col, value)
-      makeFilters(rest, filter.compose({ optRow : Option[StbRow] => for(row <- optRow; if matcher(row)) yield row }))
+      makeFilters(rest, filter.compose((optRow: Option[StbRow]) =>
+        for(row <- optRow if matcher(row))
+          yield row ))
     }
   }
 
@@ -35,7 +38,9 @@ object Filter {
     val predicate = makeFilters(filters, { x => x })
     new Filter[StbIndexedRow] {
       override def apply(rows: Iterator[StbIndexedRow]): Iterator[StbIndexedRow] = {
-        for (r <- rows; row <- r.row if predicate(row)) yield r
+        for (r <- rows;
+             row <- r.row if predicate(row))
+          yield r
       }
     }
   }

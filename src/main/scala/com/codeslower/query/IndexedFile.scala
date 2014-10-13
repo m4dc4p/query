@@ -16,7 +16,6 @@ trait FileStore[R <: Row] extends Iterable[R] {
 class StbIndexedFile(path: Path) extends FileStore[StbIndexedRow] {
 
   private val file: FileChannel = FileChannel.open(path, StandardOpenOption.READ)
-  file.map(MapMode.READ_ONLY, 0, file.size())
 
   def getAt(idx: Int): Try[Option[Array[Byte]]] = Try {
     val buffer: ByteBuffer = ByteBuffer.allocate(schema.recordSize)
@@ -31,7 +30,6 @@ class StbIndexedFile(path: Path) extends FileStore[StbIndexedRow] {
       val bytes: Array[Byte] = new Array(buffer.capacity())
       buffer.rewind()
       buffer.get(bytes)
-      // print(Math.floor(Math.log10(idx)))
       Some(bytes)
     }
   }
@@ -77,5 +75,4 @@ class StbIndexedFile(path: Path) extends FileStore[StbIndexedRow] {
   }
 
   override def schema: StbSchema = StbSchema.instance
-
 }

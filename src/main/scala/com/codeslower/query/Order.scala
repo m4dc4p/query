@@ -5,7 +5,7 @@ trait Order[A <: Row] extends Function1[Iterator[A], Iterator[A]] {
 }
 
 object Order {
-  def makeComparator(col: String): Ordering[StbRow] = col.toUpperCase.trim   match {
+  def makeComparator(col: String): Ordering[StbRow] = col.toUpperCase.trim match {
     case "STB" => new Ordering[StbRow] {
       override def compare(x: StbRow, y: StbRow): Int =
         (x.stb, y.stb) match {
@@ -69,7 +69,7 @@ object Order {
       }
       case col :: rest => {
         val lastOrdering = makeComparator(col)
-        makeOrdering(rest,  new Ordering[StbRow] {
+        makeOrdering(rest, new Ordering[StbRow] {
           override def compare(r1: StbRow, r2: StbRow): Int = { ordering.compare(r1, r2) match {
             case 0 => lastOrdering.compare(r1, r2)
             case x => x
@@ -94,7 +94,6 @@ object Order {
           override def compare(left: StbIndexedRow, right: StbIndexedRow): Int = {
             (left.row, right.row) match {
               case (Some(l), Some(r)) => {
-                // print("x")
                 orderer.compare(l, r)
               }
               case (Some(_), _) => 1
