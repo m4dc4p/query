@@ -16,7 +16,7 @@ object Boot extends App {
   opts.addOption("h", "help", false, "Display this help.")
 
   private def printUsage(): Nothing = {
-    new HelpFormatter().printUsage(new PrintWriter(System.out), 80, "query", opts)
+    new HelpFormatter().printHelp("query <ARGS>", opts)
     System.exit(0)
     ???
   }

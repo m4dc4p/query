@@ -11,6 +11,9 @@ The data store uses a fixed-width layout so access to an individual record is
 fast and easy to calculate. Cleared records left by the import process are
 effectively invisible.
 
+This implementation represents sections 1 (importer) and 2.1 (select, order and
+filter) from the spec given.
+
 Requirements
 ======
 
@@ -28,15 +31,20 @@ which will create a jar file at target/scala-2.11/query-assembly-1.0.jar.
 Importing Data & Queries
 ======
 
+The query and import scripts must be run from the top-level source directory
+(they both refer to the jar at target/scala-2.11/query-assembly-1.0.jar).
+
 To import data, pass the name of the data file to the importer program. For
 example:
 
   ./import rows.txt 
 
-The importer will create a data file in the current directory. Queries must be
-run from that directory. To query:
+The importer will create a data file named "rows.dat". The query program will
+use that file as its data store. To query:
 
-  ./query
+  ./query <ARGS>
+
+Run ./query -h to see help.
 
 Assumptions and Caveats
 =====
