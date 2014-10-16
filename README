@@ -59,7 +59,7 @@ Importer:
 Queries:
 
    * Filter expressions with spaces (like title or provider) must have quotes
-     surrounding the value. For example, '-f title=the hobbit'. Expressions
+     surrounding the value. For example, '-f title="the hobbit"'. Expressions
      without spaces can be given without quotes; for example, '-f
      title=unbreakable'.
    * Assume filter operations are passed as comma-separated arguments.
